@@ -1,0 +1,137 @@
+// fastfetch 配置 —— 跨性别旗配色 + NixOS 图形 + Nerd Font 图标
+//
+// 配色: 蓝 #5BCEFA / 粉 #F5A9B8 / 白 #FFFFFF, 与 ~/.bashrc 里 PS1 的颜色同源
+// 图形: nixos.txt 内的 $1/$2/$3 占位符, 分别对应下方 logo.color 的 1/2/3 号色
+// 图标: key.type 为 both, 即 "图标 + 文字键"; kitty 自带 Symbols Nerd Font, 可直接显示
+//
+// 修改时间: 2026-11-04
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+
+    "logo": {
+        "type": "file",
+        "source": "~/.config/fastfetch/nixos.txt",
+        "color": {
+            "1": "#5BCEFA",
+            "2": "#F5A9B8",
+            "3": "#FFFFFF"
+        },
+        "padding": {
+            "top": 0,
+            "left": 0,
+            "right": 3
+        },
+        "printRemaining": true
+    },
+
+    "display": {
+        // 键与值之间用两个空格, 比默认的 ": " 更透气
+        "separator": "  ",
+        // 各模块出错(例如取不到终端字体)时直接跳过该行, 不打印报错
+        "showErrors": false,
+        "key": {
+            // both = 图标 + 文字; width 为 0 表示不强制对齐, 避免动态键(磁盘挂载点/显示器名)超宽时把值写回键的位置
+            "type": "both",
+            "width": 0,
+            "paddingLeft": 0
+        },
+        "color": {
+            // 兜底键色; 各模块再用 keyColor 覆盖成本组的颜色
+            "keys": "#5BCEFA"
+        },
+        "percent": {
+            // 百分比: 数字 + 按阈值变色(绿色安全 / 黄色偏高 / 红色告急)
+            "type": ["num", "num-color"],
+            "ndigits": 0,
+            "color": {
+                "green": "#a6e3a1",
+                "yellow": "#f9e2af",
+                "red": "#f38ba8"
+            }
+        },
+        "size": {
+            "maxPrefix": "YB",
+            "binaryPrefix": "iec",
+            "ndigits": 2
+        }
+    },
+
+    "general": {
+        "thread": true,
+        "processingTimeout": 5000,
+        "detectVersion": true
+    },
+
+    "modules": [
+        {
+            "type": "title",
+            // key 为单个空格 = 隐藏标题键, 只留 "用户@主机"
+            "key": " ",
+            "keyIcon": "",
+            "color": {
+                "user": "#5BCEFA",
+                "at": "#FFFFFF",
+                "host": "#F5A9B8"
+            }
+        },
+        {
+            // 标题下的分隔线, 五段渐变复刻跨性别旗(蓝-粉-白-粉-蓝)
+            "type": "custom",
+            "format": "{##5BCEFA}━━━━━{##F5A9B8}━━━━━{##FFFFFF}━━━━━{##F5A9B8}━━━━━{##5BCEFA}━━━━━{#}"
+        },
+
+        // ---- 系统 ----
+        { "type": "os",       "keyColor": "#5BCEFA" },
+        { "type": "host",     "keyColor": "#5BCEFA" },
+        { "type": "kernel",   "keyColor": "#5BCEFA" },
+        { "type": "uptime",   "keyColor": "#5BCEFA" },
+        { "type": "packages", "keyColor": "#5BCEFA", "disabled": ["winget"], "combined": false },
+        { "type": "shell",    "keyColor": "#5BCEFA" },
+
+        // ---- 桌面 ----
+        { "type": "de",           "keyColor": "#F5A9B8" },
+        { "type": "wm",           "keyColor": "#F5A9B8", "detectPlugin": true },
+        { "type": "wmtheme",      "keyColor": "#F5A9B8" },
+        // format 只取第一部分, 不把 Qt/GTK2/GTK3 整串都铺出来
+        { "type": "theme",        "keyColor": "#F5A9B8", "format": "{theme1}" },
+        { "type": "icons",        "keyColor": "#F5A9B8", "format": "{icons1}" },
+        { "type": "font",         "keyColor": "#F5A9B8", "format": "{font1}" },
+        { "type": "cursor",       "keyColor": "#F5A9B8" },
+        { "type": "terminal",     "keyColor": "#F5A9B8" },
+        { "type": "terminalfont", "keyColor": "#F5A9B8" },
+
+        // ---- 硬件 ----
+        { "type": "cpu",    "keyColor": "#5BCEFA", "temp": false, "showPeCoreCount": false },
+        { "type": "gpu",    "keyColor": "#5BCEFA", "driverSpecific": false, "detectionMethod": "pci", "temp": false, "hideType": "none" },
+        { "type": "memory", "keyColor": "#5BCEFA" },
+        { "type": "swap",   "keyColor": "#5BCEFA", "separate": false },
+        { "type": "disk",   "keyColor": "#5BCEFA",
+          "showRegular": true, "showExternal": true, "showHidden": false,
+          "showSubvolumes": false, "showReadOnly": true, "showUnknown": false,
+          "hideFolders": "/efi:/boot:/boot/*", "useAvailable": false },
+        { "type": "display", "keyColor": "#5BCEFA",
+          "compactType": "none", "preciseRefreshRate": false },
+
+        // ---- 网络与电源 ----
+        { "type": "localip", "keyColor": "#F5A9B8",
+          "showIpv4": true, "showIpv6": false, "showMac": false, "showLoop": false,
+          "showPrefixLen": true, "defaultRouteOnly": true, "showAllIps": false },
+        { "type": "battery",      "keyColor": "#F5A9B8", "temp": false },
+        { "type": "poweradapter", "keyColor": "#F5A9B8" },
+        { "type": "locale",       "keyColor": "#F5A9B8" },
+
+        "break",
+        {
+            // 16 色预览: 每格 3 个字符宽, 缩进 2 格与上方的文字键对齐
+            "type": "colors",
+            "key": " ",
+            "keyIcon": "",
+            "paddingLeft": 2,
+            "symbol": "block",
+            "block": {
+                "width": 3,
+                "range": [0, 15]
+            }
+        }
+    ]
+}

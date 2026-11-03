@@ -1,0 +1,39 @@
+# 忽略 $HOME 下一切,再逐个放行。不要用 **/* —— git 不进被忽略的目录,
+# .config 里的文件就再也放不出来了;必须逐级放行父目录。
+/*
+!/.gitignore
+
+!/.bashrc.d
+!/.gtkrc-2.0
+
+# 全局 agent 规则 4K,同目录其余 1.2G 不纳
+!/.dsh
+/.dsh/*
+!/.dsh/AGENTS.md
+
+# ~/.config 下的单个文件
+!/.config
+/.config/*
+!/.config/kitty
+!/.config/htop
+!/.config/btop
+!/.config/environment.d
+
+# fastfetch
+!/.config/fastfetch
+/.config/fastfetch/*
+!/.config/fastfetch/config.jsonc
+!/.config/fastfetch/fedora.txt
+!/.config/fastfetch/nixos.txt
+
+# 从 self_configurations 并进来的工具:整个目录放行
+!/apps
+!/scripts
+!/README.MD
+!/LICENSE
+
+# 运行时产物:任何深度都排掉
+__pycache__/
+.venv/
+uploads/
+*.toml
