@@ -1,4 +1,4 @@
-// fastfetch 配置 —— 跨性别旗配色 + NixOS 图形 + Nerd Font 图标
+// fastfetch 配置 —— NixOS 图形 + Nerd Font 图标
 //
 // 配色: 蓝 #5BCEFA / 粉 #F5A9B8 / 白 #FFFFFF, 与 ~/.bashrc 里 PS1 的颜色同源
 // 图形: nixos.txt 内的 $1/$2/$3 占位符, 分别对应下方 logo.color 的 1/2/3 号色

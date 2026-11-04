@@ -23,8 +23,7 @@
 !/.config/fastfetch
 /.config/fastfetch/*
 !/.config/fastfetch/config.jsonc
-!/.config/fastfetch/fedora.txt
-!/.config/fastfetch/nixos.txt
+!/.config/fastfetch/*.txt
 
 # 从 self_configurations 并进来的工具:整个目录放行
 !/apps
