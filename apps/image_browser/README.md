@@ -11,7 +11,8 @@ uv pip install --python .venv/bin/python -r requirements.txt
 .venv/bin/python main.py                            # 不带任何参数
 ```
 
-启动方式不带任何参数, 所有配置都在当前目录的 `image_browser_conf.toml` 里:
+启动方式不带任何参数, 所有配置都在源码目录(main.py 所在目录)的 `image_browser_conf.toml` 里,
+与启动时的工作目录无关:
 
 ```toml
 dir = "."            # 要浏览的目录, 相对路径按 image_browser_conf.toml 所在目录解析

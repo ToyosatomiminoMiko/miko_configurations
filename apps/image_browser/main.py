@@ -2,7 +2,8 @@
 
 是什么: 一个 FastAPI 应用, 把 image_browser_conf.toml 里 dir 指定的目录暴露成网页;
         网页左栏是文件列表, 右栏看图片(可上一张/下一张翻页)或纯文本.
-        不接受任何命令行参数, dir/host/port 全部来自当前目录下的 image_browser_conf.toml.
+        不接受任何命令行参数, dir/host/port 全部来自源码目录(main.py 所在目录)下的
+        image_browser_conf.toml; 从哪个工作目录启动都一样.
 
 为什么:
   1. 只在局域网自用, 所以没有登录、没有鉴权、没有 HTTPS; 唯一保留的校验是路径越界检查,
@@ -77,12 +78,17 @@ TEXT_MAX_BYTES = 1 * 1024 * 1024
 
 app = FastAPI(title="image_browser")
 
-# 配置文件固定是当前目录下的 image_browser_conf.toml: 没有命令行参数, 这是唯一的配置入口.
-CONFIG_FILE = "image_browser_conf.toml"
+# 源码目录: main.py 所在的目录. 配置文件和 templates 都相对它定位.
+# 用 __file__ 而不是当前工作目录, 这样在哪个目录执行 `python /path/to/main.py` 都是同一套配置,
+# 也避免了"换了个目录启动就读到另一份配置"的坑.
+SOURCE_DIR = Path(__file__).resolve().parent
+
+# 配置文件固定是源码目录下的 image_browser_conf.toml: 没有命令行参数, 这是唯一的配置入口.
+CONFIG_FILE = SOURCE_DIR / "image_browser_conf.toml"
 
 # 配置文件缺失时打印出来让用户照抄; 这些默认值同时也是字段缺失时的取值.
 CONFIG_TEMPLATE = """\
-# 要浏览的目录.相对路径按启动时的工作目录(也就是 image_browser_conf.toml 所在目录)解析.
+# 要浏览的目录.相对路径按 image_browser_conf.toml 所在目录(源码目录)解析.
 dir = "."
 # 监听地址.0.0.0.0 表示监听所有网卡, 局域网其他机器才能访问.
 host = "0.0.0.0"
@@ -138,7 +144,7 @@ def classify(path: Path) -> str:
 @app.get("/")
 def index():
     """返回唯一的静态页面.数据不在这里渲染, 由页面里的 fetch 去调下面的 JSON 接口."""
-    page = Path(__file__).parent / "templates" / "index.html"
+    page = SOURCE_DIR / "templates" / "index.html"
     return FileResponse(page, media_type="text/html; charset=utf-8")
 
 
@@ -252,16 +258,16 @@ def local_ip():
 
 
 def load_config() -> dict:
-    """读取并校验当前目录下的 image_browser_conf.toml, 返回 {config_path, host, port} 并顺手设置 ROOT.
+    """读取并校验源码目录下的 image_browser_conf.toml, 返回 {config_path, host, port} 并顺手设置 ROOT.
 
     为什么配错就直接退出: 服务起来之后就很难发现"根目录指错了", 不如启动阶段一次报清楚.
     缺字段走默认值, 只有真跑不起来的情况(dir 不存在、port 非法)才 SystemExit.
     """
     global ROOT
-    config_path = Path(CONFIG_FILE)
+    config_path = CONFIG_FILE
     if not config_path.is_file():
         raise SystemExit(
-            f"缺少配置文件 {config_path.resolve()}, 请创建它, 内容示例:\n\n{CONFIG_TEMPLATE}"
+            f"缺少配置文件 {config_path}, 请创建它, 内容示例:\n\n{CONFIG_TEMPLATE}"
         )
 
     # tomllib 只接受二进制流, 且只会解析、不会写回, 所以配置文件不会被程序改动.
@@ -272,8 +278,11 @@ def load_config() -> dict:
         # 手改配置最常见的失误就是 TOML 语法写错, 而原始报错里不带文件名和行号上下文, 这里补上.
         raise SystemExit(f"image_browser_conf.toml 语法错误: {exc}")
 
-    # dir 相对当前工作目录解析(image_browser_conf.toml 也在那儿), 所以在哪个目录启动就以哪里为基准.
-    ROOT = Path(str(raw.get("dir", "."))).expanduser().resolve()
+    # dir 的相对路径按配置文件所在目录(源码目录)解析, 与启动时的工作目录无关;
+    # 绝对路径(包括用 ~ 写的)原样展开. Path 的 "/" 运算遇到右侧绝对路径时会直接取右侧,
+    # 所以下面这一行同时覆盖了两种情况.
+    configured = Path(str(raw.get("dir", "."))).expanduser()
+    ROOT = (configured if configured.is_absolute() else config_path.parent / configured).resolve()
     if not ROOT.is_dir():
         raise SystemExit(f"image_browser_conf.toml 的 dir 不是已存在的目录: {ROOT}")
 
