@@ -31,6 +31,9 @@
 !/README.MD
 !/LICENSE
 
+# 键位映射
+!/wt_keymap
+
 # 运行时产物:任何深度都排掉
 __pycache__/
 .venv/
